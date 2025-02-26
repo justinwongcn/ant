@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/john/ant"
+	"github.com/justinwongcn/ant"
 )
 
 func TestAnt(t *testing.T) {

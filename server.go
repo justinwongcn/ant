@@ -8,7 +8,6 @@ import (
 type HandleFunc func(ctx *Context)
 
 type Server interface {
-	http.Handler
 	// Handle 注册路由。pattern 支持 Go 1.22 的新路由语法，例如：
 	// GET /users/{id}
 	// POST /users
@@ -20,7 +19,7 @@ type Server interface {
 }
 
 // 确保 HTTPServer 肯定实现了 Server 接口
-var _ Server = &HTTPServer{}
+var _ Server = (*HTTPServer)(nil)
 
 type HTTPServer struct {
 	mux *http.ServeMux
@@ -40,9 +39,7 @@ func (s *HTTPServer) Handle(pattern string, handler HandleFunc) {
 		ctx := &Context{
 			Req:    r,
 			Resp:   w,
-			Params: func(key string) string {
-				return params[key]
-			},
+			Params: params,
 		}
 		handler(ctx)
 	}))
