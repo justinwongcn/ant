@@ -14,8 +14,9 @@ func TestAnt(t *testing.T) {
 	// 注册处理 /hello 路径的处理函数
 	server.Handle("GET /hello", func(ctx *ant.Context) {
 		// 获取查询参数中的名字
-		name := ctx.Query("name")
-		if name == "" {
+		nameVal := ctx.QueryValue("name")
+		name, err := nameVal.String()
+		if err != nil || name == "" {
 			name = "World"
 		}
 

@@ -35,11 +35,9 @@ func NewHTTPServer() *HTTPServer {
 func (s *HTTPServer) Handle(pattern string, handler HandleFunc) {
 	s.mux.Handle(pattern, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// 创建一个空的参数映射
-		params := make(map[string]string)
 		ctx := &Context{
-			Req:    r,
-			Resp:   w,
-			Params: params,
+			Req:  r,
+			Resp: w,
 		}
 		handler(ctx)
 	}))

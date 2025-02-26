@@ -1,6 +1,6 @@
 module example
 
-go 1.22
+go 1.22.0
 
 replace github.com/justinwongcn/ant => ../..
 
