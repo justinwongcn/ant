@@ -2,6 +2,7 @@ package ant
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -78,6 +79,19 @@ func (s *HTTPServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // serve 是最终的请求处理函数
 func (s *HTTPServer) serve(ctx *Context) {
 	s.mux.ServeHTTP(ctx.Resp, ctx.Req)
+}
+
+// flashResp 将Context中缓存的响应数据写入到HTTP响应中
+func (s *HTTPServer) flashResp(ctx *Context) {
+	if ctx.RespStatusCode > 0 {
+		ctx.Resp.WriteHeader(ctx.RespStatusCode)
+	}
+
+	// 将响应数据写入响应体
+	_, err := ctx.Resp.Write(ctx.RespData)
+	if err != nil {
+		log.Printf("回写响应失败: %v", err)
+	}
 }
 
 // Run 启动服务器

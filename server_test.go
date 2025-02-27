@@ -1,6 +1,7 @@
 package ant
 
 import (
+	"bytes"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -233,5 +234,33 @@ func TestUseWithNilMiddlewares(t *testing.T) {
 	// 验证中间件被正确追加
 	if len(server.middlewares) != 2 {
 		t.Error("Expected two middlewares after second registration")
+	}
+}
+
+func TestFlashResp(t *testing.T) {
+	// 创建一个HTTPServer实例
+	server := &HTTPServer{}
+
+	// 创建一个模拟的Context
+	ctx := & Context{
+		Resp: &httptest.ResponseRecorder{
+			Body: bytes.NewBuffer(nil), // 创建一个空的bytes.Buffer用于捕获写入的数据
+		},
+		RespStatusCode: 200,
+		RespData:       []byte("Hello, World!"),
+	}
+
+	// 调用flashResp方法
+	server.flashResp(ctx)
+
+	// 检查状态码是否正确设置
+	if status := ctx.Resp.(*httptest.ResponseRecorder).Code; status != 200 {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, 200)
+	}
+
+	// 检查响应体是否正确
+	expected := "Hello, World!"
+	if recBody := ctx.Resp.(*httptest.ResponseRecorder).Body.String(); recBody != expected {
+		t.Errorf("handler returned unexpected body: got %v want %v", recBody, expected)
 	}
 }
