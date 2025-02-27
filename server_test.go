@@ -107,3 +107,131 @@ func TestInvalidAddress(t *testing.T) {
 		t.Error("Expected error for invalid address")
 	}
 }
+
+// TestUseMiddleware 测试中间件注册
+func TestUseMiddleware(t *testing.T) {
+	server := NewHTTPServer()
+
+	if len(server.middlewares) != 0 {
+		t.Error("Expected empty middleware slice initially")
+	}
+
+	// 测试单个中间件注册
+	mw1 := func(next HandleFunc) HandleFunc {
+		return func(ctx *Context) {
+			next(ctx)
+		}
+	}
+	server.Use(mw1)
+
+	if len(server.middlewares) != 1 {
+		t.Error("Expected one middleware after registration")
+	}
+
+	// 测试多个中间件注册
+	mw2 := func(next HandleFunc) HandleFunc {
+		return func(ctx *Context) {
+			next(ctx)
+		}
+	}
+	mw3 := func(next HandleFunc) HandleFunc {
+		return func(ctx *Context) {
+			next(ctx)
+		}
+	}
+	server.Use(mw2, mw3)
+
+	if len(server.middlewares) != 3 {
+		t.Error("Expected three middlewares after multiple registration")
+	}
+}
+
+// TestMiddlewareChain 测试中间件链的构建和执行顺序
+func TestMiddlewareChain(t *testing.T) {
+	server := NewHTTPServer()
+	executionOrder := make([]int, 0)
+
+	// 创建三个测试中间件，每个都会记录自己的执行顺序
+	mw1 := func(next HandleFunc) HandleFunc {
+		return func(ctx *Context) {
+			executionOrder = append(executionOrder, 1)
+			next(ctx)
+			executionOrder = append(executionOrder, 6)
+		}
+	}
+
+	mw2 := func(next HandleFunc) HandleFunc {
+		return func(ctx *Context) {
+			executionOrder = append(executionOrder, 2)
+			next(ctx)
+			executionOrder = append(executionOrder, 5)
+		}
+	}
+
+	mw3 := func(next HandleFunc) HandleFunc {
+		return func(ctx *Context) {
+			executionOrder = append(executionOrder, 3)
+			next(ctx)
+			executionOrder = append(executionOrder, 4)
+		}
+	}
+
+	server.Use(mw1, mw2, mw3)
+
+	handler := func(ctx *Context) {}
+
+	chainedHandler := server.buildMiddlewareChain(handler)
+
+	chainedHandler(&Context{
+		Req:  httptest.NewRequest("GET", "/test", nil),
+		Resp: httptest.NewRecorder(),
+	})
+
+	// 验证执行顺序
+	expectedOrder := []int{1, 2, 3, 4, 5, 6}
+	if len(executionOrder) != len(expectedOrder) {
+		t.Errorf("Expected %d middleware executions, got %d", len(expectedOrder), len(executionOrder))
+	}
+
+	for i, v := range expectedOrder {
+		if executionOrder[i] != v {
+			t.Errorf("Expected execution order %v, got %v", expectedOrder, executionOrder)
+			break
+		}
+	}
+}
+
+// TestUseWithNilMiddlewares 测试 middlewares 为 nil 时的中间件注册
+func TestUseWithNilMiddlewares(t *testing.T) {
+	server := &HTTPServer{}
+	// 确保初始状态下 middlewares 为 nil
+	if server.middlewares != nil {
+		t.Error("Expected nil middlewares initially")
+	}
+
+	// 测试注册单个中间件
+	mw := func(next HandleFunc) HandleFunc {
+		return func(ctx *Context) {
+			next(ctx)
+		}
+	}
+	server.Use(mw)
+
+	// 验证中间件被正确初始化和注册
+	if len(server.middlewares) != 1 {
+		t.Error("Expected one middleware after registration")
+	}
+
+	// 测试追加注册中间件
+	mw2 := func(next HandleFunc) HandleFunc {
+		return func(ctx *Context) {
+			next(ctx)
+		}
+	}
+	server.Use(mw2)
+
+	// 验证中间件被正确追加
+	if len(server.middlewares) != 2 {
+		t.Error("Expected two middlewares after second registration")
+	}
+}
