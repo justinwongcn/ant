@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -434,6 +435,75 @@ func TestContextSetCookie(t *testing.T) {
 
 			setCookieHeader := w.Header().Get("Set-Cookie")
 			assert.Contains(t, setCookieHeader, tt.wantHeader)
+		})
+	}
+}
+
+func TestContextPostFormValue(t *testing.T) {
+	tests := []struct {
+		name     string
+		body     string
+		key      string
+		wantVal  string
+		wantErr  bool
+		errMsg   string
+	}{
+		{
+			name: "获取存在的表单值",
+			body: "name=test",
+			key: "name",
+			wantVal: "test",
+			wantErr: false,
+		},
+		{
+			name: "获取不存在的表单值",
+			body: "name=test",
+			key: "age",
+			wantErr: true,
+			errMsg: "web: 找不到这个 key",
+		},
+		{
+			name: "表单为空",
+			body: "",
+			key: "name",
+			wantErr: true,
+			errMsg: "web: 找不到这个 key",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(
+				http.MethodPost,
+				"/test",
+				strings.NewReader(tt.body),
+			)
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+			ctx := &Context{
+				Req: req,
+			}
+
+			val := ctx.PostFormValue(tt.key)
+			str, err := val.String()
+
+			if tt.wantErr {
+				if err == nil {
+					t.Fatal("期望得到错误，但是没有得到错误")
+				}
+				if err.Error() != tt.errMsg {
+					t.Errorf("期望得到的错误信息是 %s，但是得到的是 %s", tt.errMsg, err.Error())
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if str != tt.wantVal {
+				t.Errorf("期望获取到的值是 %s，但是得到的是 %s", tt.wantVal, str)
+			}
 		})
 	}
 }

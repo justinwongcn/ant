@@ -71,6 +71,20 @@ func (c *Context) FormValue(key string) StringValue {
 	return StringValue{val: value}
 }
 
+// PostFormValue 仅从 POST 表单数据中获取指定键的值
+// key: 表单字段名称
+// 返回值: 封装后的字符串值结构，包含值或错误信息
+func (c *Context) PostFormValue(key string) StringValue {
+    if err := c.Req.ParseForm(); err != nil {
+        return StringValue{err: err}
+    }
+    value := c.Req.PostFormValue(key)
+    if value == "" {
+        return StringValue{err: errors.New("web: 找不到这个 key")}
+    }
+    return StringValue{val: value}
+}
+
 // QueryValue 从 URL 查询参数中获取指定 key 的值
 //
 // key 参数指定要获取的查询参数名称
