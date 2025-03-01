@@ -237,7 +237,7 @@ func TestUseWithNilMiddlewares(t *testing.T) {
 	}
 }
 
-func TestFlashResp(t *testing.T) {
+func TestWriteResponse(t *testing.T) {
 	// 创建一个HTTPServer实例
 	server := &HTTPServer{}
 
@@ -250,8 +250,8 @@ func TestFlashResp(t *testing.T) {
 		RespData:       []byte("Hello, World!"),
 	}
 
-	// 调用flashResp方法
-	server.flashResp(ctx)
+	// 调用writeResponse方法
+	server.writeResponse(ctx)
 
 	// 检查状态码是否正确设置
 	if status := ctx.Resp.(*httptest.ResponseRecorder).Code; status != 200 {
