@@ -34,9 +34,9 @@ var _ Server = (*HTTPServer)(nil)
 
 // HTTPServer HTTP服务器的具体实现
 type HTTPServer struct {
-	mux            *http.ServeMux  // 底层路由复用器
-	middlewares    []Middleware    // 已注册的中间件列表
-	TemplateEngine TemplateEngine  // 模板引擎
+	mux            *http.ServeMux // 底层路由复用器
+	middlewares    []Middleware   // 已注册的中间件列表
+	TemplateEngine TemplateEngine // 模板引擎
 }
 
 // ServerOption 定义服务器配置选项函数类型
@@ -87,8 +87,9 @@ func (s *HTTPServer) Handle(pattern string, handler HandleFunc) {
 	s.mux.Handle(pattern, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// 创建请求上下文
 		ctx := &Context{
-			Req:  r,
-			Resp: w,
+			Req:            r,
+			Resp:           w,
+			TemplateEngine: s.TemplateEngine, // 将服务器的模板引擎传递给Context
 		}
 		// 构建并执行中间件链
 		middlewareChain := s.buildMiddlewareChain(handler)
@@ -97,7 +98,7 @@ func (s *HTTPServer) Handle(pattern string, handler HandleFunc) {
 }
 
 // buildMiddlewareChain 使用迭代器模式构建中间件调用链
-// handler: 最终的请求处理函数
+// handler: 最终地请求处理函数
 // 返回值: 包含所有中间件的处理函数
 // 注意：中间件的执行顺序与注册顺序相反
 func (s *HTTPServer) buildMiddlewareChain(handler HandleFunc) HandleFunc {
@@ -107,16 +108,15 @@ func (s *HTTPServer) buildMiddlewareChain(handler HandleFunc) HandleFunc {
 	// 返回包含完整中间件链的闭包
 	return func(ctx *Context) {
 		// 定义递归函数来依次调用中间件
-		var next HandleFunc = func(c *Context) {
-			handler(c)
-			s.writeResponse(c)
-		} // 链的终点是实际的处理器加上响应写入
+		var next HandleFunc = handler // 链的终点是实际的处理器
 		for i := len(middlewares) - 1; i >= 0; i-- {
 			middleware := middlewares[i]
 			next = middleware(next)
 		}
 		// 启动中间件链
 		next(ctx)
+		// 在所有中间件执行完成后写入响应
+		s.writeResponse(ctx)
 	}
 }
 
