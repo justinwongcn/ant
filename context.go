@@ -184,7 +184,11 @@ func (c *Context) RespTemplate(tplName string, data any) error {
 	// 设置Content-Type
 	c.Resp.Header().Set("Content-Type", "text/html; charset=utf-8")
 
-	// 写入响应
+	// 设置状态码和响应数据
+	c.RespStatusCode = http.StatusOK
+	c.RespData = bs
+	
+	// 直接写入响应体，确保在测试中也能正确写入
 	_, err = c.Resp.Write(bs)
 	return err
 }
