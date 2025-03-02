@@ -2,6 +2,7 @@ package ant
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -512,4 +513,74 @@ func TestContextPostFormValue(t *testing.T) {
 type TestData struct {
 	Name string `json:"name"`
 	Age  int    `json:"age"`
+}
+
+// MockTemplateEngine 用于测试的模拟模板引擎
+type MockTemplateEngine struct {
+	shouldError bool
+	output      []byte
+}
+
+func (m *MockTemplateEngine) Render(_ context.Context, _ string, _ any) ([]byte, error) {
+	if m.shouldError {
+		return nil, errors.New("模板渲染失败")
+	}
+	return m.output, nil
+}
+
+func TestContextRespTemplate(t *testing.T) {
+	tests := []struct {
+		name        string
+		engine      TemplateEngine
+		expectedErr  string
+		expectedResp string
+	}{
+		{
+			name:        "模板引擎未设置",
+			engine:      nil,
+			expectedErr: "web: 未设置模板引擎",
+		},
+		{
+			name: "模板渲染失败",
+			engine: &MockTemplateEngine{
+				shouldError: true,
+			},
+			expectedErr: "模板渲染失败",
+		},
+		{
+			name: "成功渲染模板",
+			engine: &MockTemplateEngine{
+				output: []byte("<h1>Hello World</h1>"),
+			},
+			expectedResp: "<h1>Hello World</h1>",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// 创建测试上下文
+			w := httptest.NewRecorder()
+			ctx := &Context{
+				Resp:           w,
+				TemplateEngine: tt.engine,
+			}
+
+			// 调用被测试的方法
+			err := ctx.RespTemplate("test.html", nil)
+
+			// 验证错误
+			if tt.expectedErr != "" {
+				assert.EqualError(t, err, tt.expectedErr)
+				return
+			}
+
+			// 验证成功情况
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expectedResp, w.Body.String())
+			
+			// 验证Content-Type头部
+			contentType := w.Header().Get("Content-Type")
+			assert.Equal(t, "text/html; charset=utf-8", contentType)
+		})
+	}
 }

@@ -2,6 +2,7 @@ package ant
 
 import (
 	"bytes"
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -262,5 +263,68 @@ func TestWriteResponse(t *testing.T) {
 	expected := "Hello, World!"
 	if recBody := ctx.Resp.(*httptest.ResponseRecorder).Body.String(); recBody != expected {
 		t.Errorf("handler returned unexpected body: got %v want %v", recBody, expected)
+	}
+}
+
+// MockTemplateEngine 是一个用于测试的模板引擎实现
+type MockServerTemplateEngine struct {
+	RenderFunc func(ctx context.Context, tplName string, data any) ([]byte, error)
+}
+
+// Render 实现TemplateEngine接口
+func (m *MockServerTemplateEngine) Render(ctx context.Context, tplName string, data any) ([]byte, error) {
+	if m.RenderFunc != nil {
+		return m.RenderFunc(ctx, tplName, data)
+	}
+	return []byte("mock template output"), nil
+}
+
+// TestServerWithTemplateEngine 测试模板引擎配置选项
+func TestServerWithTemplateEngine(t *testing.T) {
+	// 创建一个模拟的模板引擎
+	mockEngine := &MockTemplateEngine{}
+
+	// 使用ServerWithTemplateEngine创建配置选项
+	option := ServerWithTemplateEngine(mockEngine)
+
+	// 创建一个服务器实例
+	server := &HTTPServer{}
+
+	// 应用配置选项
+	option(server)
+
+	// 验证模板引擎是否正确设置
+	if server.TemplateEngine != mockEngine {
+		t.Error("模板引擎未被正确设置")
+	}
+}
+
+// TestMultipleServerOptions 测试多个服务器配置选项
+func TestMultipleServerOptions(t *testing.T) {
+	// 创建一个模拟的模板引擎
+	mockEngine := &MockTemplateEngine{}
+
+	// 创建一个自定义配置选项，用于测试
+	customOption := func(server *HTTPServer) {
+		// 设置一个自定义值，稍后验证
+		server.middlewares = append(server.middlewares, func(next HandleFunc) HandleFunc {
+			return next
+		})
+	}
+
+	// 使用多个配置选项创建服务器
+	server := NewHTTPServer(
+		ServerWithTemplateEngine(mockEngine),
+		customOption,
+	)
+
+	// 验证模板引擎是否正确设置
+	if server.TemplateEngine != mockEngine {
+		t.Error("模板引擎未被正确设置")
+	}
+
+	// 验证自定义配置选项是否被应用
+	if len(server.middlewares) != 1 {
+		t.Error("自定义配置选项未被正确应用")
 	}
 }
