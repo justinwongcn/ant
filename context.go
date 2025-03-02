@@ -1,6 +1,7 @@
 package ant
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -20,6 +21,9 @@ type Context struct {
 	// 响应缓存数据，在最终响应时一次性写入
 	RespStatusCode int    // 响应状态码
 	RespData       []byte // 响应内容主体
+
+	// 模板引擎，用于渲染HTML模板
+	TemplateEngine TemplateEngine
 }
 
 // BindJSON 解析请求体中的JSON数据并绑定到指定结构体
@@ -160,4 +164,27 @@ func (c *Context) RespJSON(code int, val any) error {
 // 返回值: 同RespJSON方法
 func (c *Context) RespJSONOK(val any) error {
 	return c.RespJSON(http.StatusOK, val)
+}
+
+// RespTemplate 渲染HTML模板并将结果写入响应
+// tplName: 模板名称
+// data: 渲染数据
+// 返回值: 渲染过程中的错误
+func (c *Context) RespTemplate(tplName string, data any) error {
+	if c.TemplateEngine == nil {
+		return errors.New("web: 未设置模板引擎")
+	}
+
+	// 渲染模板
+	bs, err := c.TemplateEngine.Render(context.Background(), tplName, data)
+	if err != nil {
+		return err
+	}
+
+	// 设置Content-Type
+	c.Resp.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+	// 写入响应
+	_, err = c.Resp.Write(bs)
+	return err
 }

@@ -33,20 +33,39 @@ type Server interface {
 var _ Server = (*HTTPServer)(nil)
 
 // HTTPServer HTTP服务器的具体实现
-// 提供路由注册、中间件支持和请求处理功能
 type HTTPServer struct {
-	mux         *http.ServeMux    // 底层路由复用器
-	middlewares []Middleware      // 已注册的中间件列表
+	mux            *http.ServeMux  // 底层路由复用器
+	middlewares    []Middleware    // 已注册的中间件列表
+	TemplateEngine TemplateEngine  // 模板引擎
+}
+
+// ServerOption 定义服务器配置选项函数类型
+// server: 需要配置的HTTP服务器实例
+type ServerOption func(server *HTTPServer)
+
+// ServerWithTemplateEngine 创建设置模板引擎的配置选项
+// engine: 要使用的模板引擎实例
+// 返回值: 配置函数
+func ServerWithTemplateEngine(engine TemplateEngine) ServerOption {
+	return func(server *HTTPServer) {
+		server.TemplateEngine = engine
+	}
 }
 
 // NewHTTPServer 创建一个新的HTTP服务器实例
+// opts: 可选的服务器配置选项
 // 返回值: 初始化后的HTTPServer指针
 // 注意：默认不包含任何中间件，需要通过Use方法注册
-func NewHTTPServer() *HTTPServer {
-	return &HTTPServer{
+func NewHTTPServer(opts ...ServerOption) *HTTPServer {
+	server := &HTTPServer{
 		mux:         http.NewServeMux(),
 		middlewares: make([]Middleware, 0),
 	}
+	// 应用所有配置选项
+	for _, opt := range opts {
+		opt(server)
+	}
+	return server
 }
 
 // Use 注册中间件
