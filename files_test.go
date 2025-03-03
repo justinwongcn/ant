@@ -317,7 +317,10 @@ func TestStaticResourceHandler(t *testing.T) {
 	}
 }
 
+// 在 Windows 环境下，因权限问题测试用例无法通过
+
 func TestFileUploaderError(t *testing.T) {
+	// 定义测试用例
 	tests := []struct {
 		name           string
 		setupFunc      func(string) // 用于设置测试环境
@@ -349,6 +352,7 @@ func TestFileUploaderError(t *testing.T) {
 		},
 	}
 
+	// 遍历测试用例
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// 创建临时目录
