@@ -79,14 +79,14 @@ func (c *Context) FormValue(key string) StringValue {
 // key: 表单字段名称
 // 返回值: 封装后的字符串值结构，包含值或错误信息
 func (c *Context) PostFormValue(key string) StringValue {
-    if err := c.Req.ParseForm(); err != nil {
-        return StringValue{err: err}
-    }
-    value := c.Req.PostFormValue(key)
-    if value == "" {
-        return StringValue{err: errors.New("web: 找不到这个 key")}
-    }
-    return StringValue{val: value}
+	if err := c.Req.ParseForm(); err != nil {
+		return StringValue{err: err}
+	}
+	value := c.Req.PostFormValue(key)
+	if value == "" {
+		return StringValue{err: errors.New("web: 找不到这个 key")}
+	}
+	return StringValue{val: value}
 }
 
 // QueryValue 从 URL 查询参数中获取指定 key 的值
@@ -94,15 +94,6 @@ func (c *Context) PostFormValue(key string) StringValue {
 // key 参数指定要获取的查询参数名称
 //
 // 返回 StringValue 类型，包含查询参数的值或错误信息
-//
-// Example:
-//
-//	func (s StringValue) QueryValueAsInt64() (int64, error) {
-//		if s.err != nil {
-//			return 0, s.err
-//		}
-//		return strconv.ParseInt(s.val, 10, 64)
-//	}
 func (c *Context) QueryValue(key string) StringValue {
 	if c.cacheQueryValues == nil {
 		c.cacheQueryValues = c.Req.URL.Query()
@@ -121,15 +112,6 @@ func (c *Context) QueryValue(key string) StringValue {
 // key 参数指定要获取的路径参数名称
 //
 // 返回 StringValue 类型，包含路径参数的值或错误信息
-//
-// Example:
-//
-//	func (s StringValue) PathValueAsInt64() (int64, error) {
-//		if s.err != nil {
-//			return 0, s.err
-//		}
-//		return strconv.ParseInt(s.val, 10, 64)
-//	}
 func (c *Context) PathValue(key string) StringValue {
 	value := c.Req.PathValue(key)
 	if value == "" {
@@ -187,7 +169,7 @@ func (c *Context) RespTemplate(tplName string, data any) error {
 	// 设置状态码和响应数据
 	c.RespStatusCode = http.StatusOK
 	c.RespData = bs
-	
+
 	// 直接写入响应体，确保在测试中也能正确写入
 	_, err = c.Resp.Write(bs)
 	return err
