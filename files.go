@@ -22,6 +22,8 @@ type FileUploader struct {
 	FileField string
 	// DstPathFunc 根据上传的文件信息确定目标存储路径的函数
 	DstPathFunc func(fh *multipart.FileHeader) string
+	// FileNameFunc 生成文件名的函数，如果为nil则使用原始文件名
+	FileNameFunc func(originalName string) string
 }
 
 // Handle 实现文件上传处理逻辑
@@ -30,6 +32,7 @@ type FileUploader struct {
 // 1. 自动创建目标目录
 // 2. 返回上传结果和文件大小信息
 // 3. 处理各类错误场景并返回适当的HTTP状态码
+// 4. 支持自定义文件名生成策略，避免文件重名
 func (f *FileUploader) Handle() HandleFunc {
 	return func(ctx *Context) {
 		src, fileHeader, err := ctx.Req.FormFile(f.FileField)
@@ -40,8 +43,22 @@ func (f *FileUploader) Handle() HandleFunc {
 		}
 		defer src.Close()
 
+		// 生成文件名
+		originalName := fileHeader.Filename
+		fileName := originalName
+		if f.FileNameFunc != nil {
+			fileName = f.FileNameFunc(originalName)
+		}
+
+		// 使用新的文件名创建FileHeader
+		newFileHeader := &multipart.FileHeader{
+			Filename: fileName,
+			Size:     fileHeader.Size,
+			Header:   fileHeader.Header,
+		}
+
 		// 确保目标目录存在
-		dstPath := f.DstPathFunc(fileHeader)
+		dstPath := f.DstPathFunc(newFileHeader)
 		if err = os.MkdirAll(filepath.Dir(dstPath), 0o755); err != nil {
 			ctx.RespStatusCode = http.StatusInternalServerError
 			ctx.RespData = []byte("创建目录失败")

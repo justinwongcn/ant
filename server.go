@@ -14,6 +14,7 @@ type HandleFunc func(ctx *Context)
 // Server 定义HTTP服务器接口
 // 提供路由注册和服务器启动的核心功能
 type Server interface {
+	http.Handler
 	// Handle 注册路由。pattern 支持 Go 1.22 的新路由语法，例如：
 	// GET /users/{id}
 	// POST /users
