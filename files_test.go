@@ -28,6 +28,7 @@ func TestFileUploader(t *testing.T) {
 		filename       string
 		expectedStatus int
 		expectedBody   string
+		fileNameFunc   func(string) string
 	}{
 		{
 			name:           "成功上传文件",
@@ -42,6 +43,16 @@ func TestFileUploader(t *testing.T) {
 			filename:       "empty.txt",
 			expectedStatus: http.StatusOK,
 			expectedBody:   "上传成功，文件大小: 0 bytes",
+		},
+		{
+			name:           "使用自定义文件名",
+			fileContent:    "test content",
+			filename:       "test.txt",
+			expectedStatus: http.StatusOK,
+			expectedBody:   "上传成功，文件大小: 12 bytes",
+			fileNameFunc: func(name string) string {
+				return "custom_" + name
+			},
 		},
 	}
 
@@ -69,7 +80,11 @@ func TestFileUploader(t *testing.T) {
 			uploader := &FileUploader{
 				FileField: "file",
 				DstPathFunc: func(fh *multipart.FileHeader) string {
-					return filepath.Join(tmpDir, fh.Filename)
+					fileName := fh.Filename
+					if tt.fileNameFunc != nil {
+						fileName = tt.fileNameFunc(fileName)
+					}
+					return filepath.Join(tmpDir, fileName)
 				},
 			}
 
@@ -418,6 +433,7 @@ func TestFileUploaderMoreErrors(t *testing.T) {
 		setupFunc      func(*http.Request, *FileUploader) // 用于设置测试环境
 		expectedStatus int
 		expectedBody   string
+		fileNameFunc   func(string) string 
 	}{
 		{
 			name: "上传失败，未找到文件",
@@ -473,7 +489,11 @@ func TestFileUploaderMoreErrors(t *testing.T) {
 			uploader := &FileUploader{
 				FileField: "file",
 				DstPathFunc: func(fh *multipart.FileHeader) string {
-					return filepath.Join(tmpDir, fh.Filename)
+					fileName := fh.Filename
+					if tt.fileNameFunc != nil {
+						fileName = tt.fileNameFunc(fileName)
+					}
+					return filepath.Join(tmpDir, fileName)
 				},
 			}
 
@@ -584,6 +604,85 @@ func TestFileDownloaderMoreErrors(t *testing.T) {
 
 			if string(ctx.RespData) != tt.expectedBody {
 				t.Errorf("期望响应体 %s, 得到 %s", tt.expectedBody, string(ctx.RespData))
+			}
+		})
+	}
+}
+
+func TestWithMoreExtension(t *testing.T) {
+	tests := []struct {
+		name     string
+		extMap   map[string]string
+		expected map[string]string
+	}{
+		{
+			name: "添加新的扩展名映射",
+			extMap: map[string]string{
+				"mp3": "audio/mpeg",
+				"mp4": "video/mp4",
+			},
+			expected: map[string]string{
+				"html": "text/html; charset=utf-8",
+				"mp3":  "audio/mpeg",
+				"mp4":  "video/mp4",
+			},
+		},
+		{
+			name: "覆盖已存在的扩展名映射",
+			extMap: map[string]string{
+				"html": "text/html",
+				"txt":  "text/markdown",
+			},
+			expected: map[string]string{
+				"html": "text/html",
+				"txt":  "text/markdown",
+			},
+		},
+		{
+			name:     "添加空映射",
+			extMap:   map[string]string{},
+			expected: map[string]string{
+				"html": "text/html; charset=utf-8",
+				"txt":  "text/plain",
+			},
+		},
+		{
+			name: "添加多个扩展名映射",
+			extMap: map[string]string{
+				"mp3":  "audio/mpeg",
+				"wav":  "audio/wav",
+				"mp4":  "video/mp4",
+				"webm": "video/webm",
+			},
+			expected: map[string]string{
+				"html": "text/html; charset=utf-8",
+				"mp3":  "audio/mpeg",
+				"wav":  "audio/wav",
+				"mp4":  "video/mp4",
+				"webm": "video/webm",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// 创建一个基础的StaticResourceHandler
+			h := NewStaticResourceHandler("", "")
+
+			// 应用WithMoreExtension选项
+			opt := WithMoreExtension(tt.extMap)
+			opt(h)
+
+			// 验证扩展名映射
+			for ext, contentType := range tt.expected {
+				actual, ok := h.extensionContentTypeMap[ext]
+				if !ok {
+					t.Errorf("扩展名 %s 的映射不存在", ext)
+					continue
+				}
+				if actual != contentType {
+					t.Errorf("扩展名 %s 的Content-Type期望为 %s，实际为 %s", ext, contentType, actual)
+				}
 			}
 		})
 	}

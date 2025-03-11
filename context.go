@@ -93,6 +93,10 @@ func (c *Context) PostFormValue(key string) StringValue {
 }
 
 // QueryValue 从 URL 查询参数中获取指定 key 的值
+//
+// key 参数指定要获取的查询参数名称
+//
+// 返回 StringValue 类型，包含查询参数的值或错误信息
 func (c *Context) QueryValue(key string) StringValue {
 	if c.cacheQueryValues == nil {
 		c.cacheQueryValues = c.Req.URL.Query()
@@ -107,6 +111,10 @@ func (c *Context) QueryValue(key string) StringValue {
 }
 
 // PathValue 从 URL 路径参数中获取指定 key 的值
+//
+// key 参数指定要获取的路径参数名称
+//
+// 返回 StringValue 类型，包含路径参数的值或错误信息
 func (c *Context) PathValue(key string) StringValue {
 	value := c.Req.PathValue(key)
 	if value == "" {
