@@ -90,14 +90,6 @@ func (c *Context) PostFormValue(key string) StringValue {
 		return StringValue{err: errors.New("web: 找不到这个 key")}
 	}
 	return StringValue{val: value}
-	if err := c.Req.ParseForm(); err != nil {
-		return StringValue{err: err}
-	}
-	value := c.Req.PostFormValue(key)
-	if value == "" {
-		return StringValue{err: errors.New("web: 找不到这个 key")}
-	}
-	return StringValue{val: value}
 }
 
 // QueryValue 从 URL 查询参数中获取指定 key 的值
