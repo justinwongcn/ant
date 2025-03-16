@@ -109,7 +109,7 @@ func (s *HTTPServer) buildMiddlewareChain(handler HandleFunc) HandleFunc {
 	// 返回包含完整中间件链的闭包
 	return func(ctx *Context) {
 		// 定义递归函数来依次调用中间件
-		var next HandleFunc = handler // 链的终点是实际的处理器
+		var next = handler // 链的终点是实际的处理器
 		for i := len(middlewares) - 1; i >= 0; i-- {
 			middleware := middlewares[i]
 			next = middleware(next)
