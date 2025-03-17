@@ -173,7 +173,6 @@ func (c *Context) RespTemplate(tplName string, data any) error {
 	c.RespStatusCode = http.StatusOK
 	c.RespData = bs
 
-
 	// 直接写入响应体，确保在测试中也能正确写入
 	_, err = c.Resp.Write(bs)
 	return err

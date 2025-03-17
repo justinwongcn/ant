@@ -14,7 +14,7 @@ import (
 // 利用内存缓存来管理会话的存储和过期时间
 type Store struct {
 	// c 内存缓存实例，用于管理会话数据和过期时间
-	c          *cache.Cache
+	c *cache.Cache
 	// expiration 会话的过期时间
 	expiration time.Duration
 }
@@ -34,13 +34,13 @@ func NewStore(expiration time.Duration) *Store {
 // 实现了 session.Session 接口
 type memorySession struct {
 	// id 会话的唯一标识符
-	id         string
+	id string
 	// data 存储会话数据的映射
-	data       map[string]any
+	data map[string]any
 	// expiration 会话的过期时间
 	expiration time.Duration
 	// mu 保护 data 的互斥锁
-	mu         sync.Mutex
+	mu sync.Mutex
 }
 
 // Get 获取会话中的数据

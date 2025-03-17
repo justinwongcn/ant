@@ -128,7 +128,7 @@ func TestMiddlewareE2E(t *testing.T) {
 
 		// 创建多个中间件
 		middlewares := make([]Middleware, 3)
-		for i := range 3{
+		for i := range 3 {
 			index := i // 捕获索引值
 			middlewares[i] = func(next HandleFunc) HandleFunc {
 				return func(ctx *Context) {

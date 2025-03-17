@@ -20,7 +20,7 @@ func NewMiddlewareBuilder() *MiddlewareBuilder {
 	return &MiddlewareBuilder{
 		StatusCode: 500,
 		ErrMsg:     "Internal Server Error",
-		LogFunc: func(ctx *ant.Context) {},
+		LogFunc:    func(ctx *ant.Context) {},
 	}
 }
 

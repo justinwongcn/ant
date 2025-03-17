@@ -142,7 +142,7 @@ func TestGoTemplateEngineLoadFromGlob(t *testing.T) {
 
 	// 创建测试模板文件
 	tplPath := tmpDir + "/test.html"
-	if err := os.WriteFile(tplPath, []byte("Hello {{.Name}}"), 0666); err != nil {
+	if err := os.WriteFile(tplPath, []byte("Hello {{.Name}}"), 0o666); err != nil {
 		t.Fatal(err)
 	}
 

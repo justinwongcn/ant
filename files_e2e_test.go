@@ -100,7 +100,7 @@ func TestFileHandlingE2E(t *testing.T) {
 		// 创建测试HTML文件
 		htmlContent := "<html><body>测试页面</body></html>"
 		htmlFile := filepath.Join(tmpDir, "test.html")
-		if err := os.WriteFile(htmlFile, []byte(htmlContent), 0666); err != nil {
+		if err := os.WriteFile(htmlFile, []byte(htmlContent), 0o666); err != nil {
 			t.Fatal(err)
 		}
 

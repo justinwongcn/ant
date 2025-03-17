@@ -12,7 +12,7 @@ type Session interface {
 	// Set 设置会话中的数据
 	Set(ctx context.Context, key string, value any) error
 	// ID 获取会话ID
-	ID() string
+	ID() (id string)
 }
 
 // Store 定义会话存储接口
@@ -59,7 +59,7 @@ type Propagator interface {
 	// 返回值:
 	// - 提取的会话ID
 	// - 可能发生的错误
-	Extract(req *http.Request) (string, error)
+	Extract(req *http.Request) (id string, err error)
 
 	// Remove 从HTTP响应中移除会话ID
 	// writer: HTTP响应写入器

@@ -243,7 +243,7 @@ func TestWriteResponse(t *testing.T) {
 	server := &HTTPServer{}
 
 	// 创建一个模拟的Context
-	ctx := & Context{
+	ctx := &Context{
 		Resp: &httptest.ResponseRecorder{
 			Body: bytes.NewBuffer(nil), // 创建一个空的bytes.Buffer用于捕获写入的数据
 		},

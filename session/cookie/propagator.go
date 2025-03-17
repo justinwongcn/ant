@@ -6,7 +6,7 @@ import "net/http"
 // 用于在HTTP请求和响应中传递会话信息
 type Propagator struct {
 	// cookieName 存储会话ID的Cookie名称
-	cookieName   string
+	cookieName string
 	// cookieOption 用于配置Cookie属性的函数
 	cookieOption func(cookie *http.Cookie)
 }

@@ -128,7 +128,7 @@ func TestFileDownloader(t *testing.T) {
 	// 创建测试文件
 	testContent := "test content"
 	testFilePath := filepath.Join(tmpDir, "test.txt")
-	if err := os.WriteFile(testFilePath, []byte(testContent), 0666); err != nil {
+	if err := os.WriteFile(testFilePath, []byte(testContent), 0o666); err != nil {
 		t.Fatal(err)
 	}
 
@@ -236,7 +236,7 @@ func TestStaticResourceHandler(t *testing.T) {
 	}
 
 	for filename, file := range testFiles {
-		if err := os.WriteFile(filepath.Join(tmpDir, filename), []byte(file.content), 0666); err != nil {
+		if err := os.WriteFile(filepath.Join(tmpDir, filename), []byte(file.content), 0o666); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -347,9 +347,9 @@ func TestFileUploaderError(t *testing.T) {
 			setupFunc: func(dir string) {
 				// 创建一个只读文件，阻止创建目录
 				// 使用一个不存在的路径，确保MkdirAll会失败
-				os.WriteFile(filepath.Join(dir, "readonly"), []byte("test"), 0400)
+				os.WriteFile(filepath.Join(dir, "readonly"), []byte("test"), 0o400)
 				// 修改tmpDir的权限为只读，确保无法在其中创建新目录
-				os.Chmod(dir, 0400)
+				os.Chmod(dir, 0o400)
 			},
 			expectedStatus: http.StatusInternalServerError,
 			expectedBody:   "创建目录失败",
@@ -359,8 +359,8 @@ func TestFileUploaderError(t *testing.T) {
 			setupFunc: func(dir string) {
 				// 创建目标子目录，但设置为只读，确保无法在其中创建文件
 				subdir := filepath.Join(dir, "subdir")
-				os.MkdirAll(subdir, 0755)
-				os.Chmod(subdir, 0400)
+				os.MkdirAll(subdir, 0o755)
+				os.Chmod(subdir, 0o400)
 			},
 			expectedStatus: http.StatusInternalServerError,
 			expectedBody:   "创建文件失败",
@@ -433,7 +433,7 @@ func TestFileUploaderMoreErrors(t *testing.T) {
 		setupFunc      func(*http.Request, *FileUploader) // 用于设置测试环境
 		expectedStatus int
 		expectedBody   string
-		fileNameFunc   func(string) string 
+		fileNameFunc   func(string) string
 	}{
 		{
 			name: "上传失败，未找到文件",
@@ -542,7 +542,7 @@ func TestFileDownloaderMoreErrors(t *testing.T) {
 			setupFunc: func(req *http.Request, downloader *FileDownloader, tmpDir string) {
 				// 创建一个无法读取的文件（只有写权限）
 				filePath := filepath.Join(tmpDir, "unreadable.txt")
-				os.WriteFile(filePath, []byte("test content"), 0200) // 只有写权限
+				os.WriteFile(filePath, []byte("test content"), 0o200) // 只有写权限
 				*req = *httptest.NewRequest(http.MethodGet, "/download?file=unreadable.txt", nil)
 			},
 			expectedStatus: http.StatusForbidden,
@@ -553,7 +553,7 @@ func TestFileDownloaderMoreErrors(t *testing.T) {
 			setupFunc: func(req *http.Request, downloader *FileDownloader, tmpDir string) {
 				// 创建一个目录而不是文件，尝试打开它会失败
 				dirPath := filepath.Join(tmpDir, "directory")
-				os.Mkdir(dirPath, 0755)
+				os.Mkdir(dirPath, 0o755)
 				*req = *httptest.NewRequest(http.MethodGet, "/download?file=directory", nil)
 			},
 			expectedStatus: http.StatusInternalServerError,
@@ -574,7 +574,7 @@ func TestFileDownloaderMoreErrors(t *testing.T) {
 
 			// 创建一个普通测试文件
 			testFilePath := filepath.Join(tmpDir, "test.txt")
-			if err := os.WriteFile(testFilePath, []byte("test content"), 0666); err != nil {
+			if err := os.WriteFile(testFilePath, []byte("test content"), 0o666); err != nil {
 				t.Fatal(err)
 			}
 
@@ -639,8 +639,8 @@ func TestWithMoreExtension(t *testing.T) {
 			},
 		},
 		{
-			name:     "添加空映射",
-			extMap:   map[string]string{},
+			name:   "添加空映射",
+			extMap: map[string]string{},
 			expected: map[string]string{
 				"html": "text/html; charset=utf-8",
 				"txt":  "text/plain",

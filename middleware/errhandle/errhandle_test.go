@@ -1,10 +1,11 @@
 package errhandle
 
 import (
-	"github.com/justinwongcn/ant"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/justinwongcn/ant"
 )
 
 func TestErrorHandleMiddleware(t *testing.T) {
@@ -71,7 +72,7 @@ func TestErrorHandleMiddleware(t *testing.T) {
 func TestErrorHandleMiddlewareChaining(t *testing.T) {
 	mb := NewMiddlewareBuilder()
 	mb.RegisterError(http.StatusBadRequest, []byte("Bad Request"))
-		mb.RegisterError(http.StatusNotFound, []byte("Not Found"))
+	mb.RegisterError(http.StatusNotFound, []byte("Not Found"))
 
 	middleware := mb.Build()
 	handler := middleware(func(ctx *ant.Context) {

@@ -442,33 +442,33 @@ func TestContextSetCookie(t *testing.T) {
 
 func TestContextPostFormValue(t *testing.T) {
 	tests := []struct {
-		name     string
-		body     string
-		key      string
-		wantVal  string
-		wantErr  bool
-		errMsg   string
+		name    string
+		body    string
+		key     string
+		wantVal string
+		wantErr bool
+		errMsg  string
 	}{
 		{
-			name: "获取存在的表单值",
-			body: "name=test",
-			key: "name",
+			name:    "获取存在的表单值",
+			body:    "name=test",
+			key:     "name",
 			wantVal: "test",
 			wantErr: false,
 		},
 		{
-			name: "获取不存在的表单值",
-			body: "name=test",
-			key: "age",
+			name:    "获取不存在的表单值",
+			body:    "name=test",
+			key:     "age",
 			wantErr: true,
-			errMsg: "web: 找不到这个 key",
+			errMsg:  "web: 找不到这个 key",
 		},
 		{
-			name: "表单为空",
-			body: "",
-			key: "name",
+			name:    "表单为空",
+			body:    "",
+			key:     "name",
 			wantErr: true,
-			errMsg: "web: 找不到这个 key",
+			errMsg:  "web: 找不到这个 key",
 		},
 	}
 
@@ -530,8 +530,8 @@ func (m *MockTemplateEngine) Render(_ context.Context, _ string, _ any) ([]byte,
 
 func TestContextRespTemplate(t *testing.T) {
 	tests := []struct {
-		name        string
-		engine      TemplateEngine
+		name         string
+		engine       TemplateEngine
 		expectedErr  string
 		expectedResp string
 	}{
@@ -577,7 +577,7 @@ func TestContextRespTemplate(t *testing.T) {
 			// 验证成功情况
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedResp, w.Body.String())
-			
+
 			// 验证Content-Type头部
 			contentType := w.Header().Get("Content-Type")
 			assert.Equal(t, "text/html; charset=utf-8", contentType)

@@ -33,7 +33,7 @@ func TestCoreComponentsE2E(t *testing.T) {
 	</html>
 	`
 	tplPath := filepath.Join(tmpDir, "test.html")
-	if err := os.WriteFile(tplPath, []byte(tplContent), 0666); err != nil {
+	if err := os.WriteFile(tplPath, []byte(tplContent), 0o666); err != nil {
 		t.Fatal(err)
 	}
 
