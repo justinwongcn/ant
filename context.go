@@ -139,6 +139,7 @@ func (c *Context) RespJSON(code int, val any) error {
 	if err != nil {
 		return err
 	}
+	c.Resp.Header().Set("Content-Type", "application/json; charset=utf-8")
 	c.Resp.WriteHeader(code)
 	_, err = c.Resp.Write(bs)
 	return err
@@ -166,12 +167,13 @@ func (c *Context) RespTemplate(tplName string, data any) error {
 		return err
 	}
 
-	// 设置Content-Type
-	c.Resp.Header().Set("Content-Type", "text/html; charset=utf-8")
-
 	// 设置状态码和响应数据
 	c.RespStatusCode = http.StatusOK
 	c.RespData = bs
+
+	// 设置Content-Type
+	c.Resp.Header().Set("Content-Type", "text/html; charset=utf-8")
+	c.Resp.WriteHeader(c.RespStatusCode)
 
 	// 直接写入响应体，确保在测试中也能正确写入
 	_, err = c.Resp.Write(bs)
