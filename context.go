@@ -110,6 +110,25 @@ func (c *Context) QueryValue(key string) StringValue {
 	return StringValue{val: value}
 }
 
+// DefaultQueryValue 从 URL 查询参数中获取指定 key 的值，如果不存在则返回默认值
+//
+// key 参数指定要获取的查询参数名称
+// defaultValue 参数指定当参数不存在时的默认值
+//
+// 返回 StringValue 类型，包含查询参数的值或默认值
+func (c *Context) DefaultQueryValue(key string, defaultValue string) StringValue {
+	if c.cacheQueryValues == nil {
+		c.cacheQueryValues = c.Req.URL.Query()
+	}
+
+	value := c.cacheQueryValues.Get(key)
+	if value == "" {
+		return StringValue{val: defaultValue}
+	}
+
+	return StringValue{val: value}
+}
+
 // PathValue 从 URL 路径参数中获取指定 key 的值
 //
 // key 参数指定要获取的路径参数名称
@@ -178,4 +197,10 @@ func (c *Context) RespTemplate(tplName string, data any) error {
 	// 直接写入响应体，确保在测试中也能正确写入
 	_, err = c.Resp.Write(bs)
 	return err
+}
+
+// WriteString 将字符串写入响应体
+func (c *Context) WriteString(data string) error {
+	c.RespData = []byte(data)
+	return nil
 }
